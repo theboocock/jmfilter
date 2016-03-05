@@ -1,0 +1,3 @@
+[console_scripts]
+jmfilter = jmfilter.loc_filter:main
+
