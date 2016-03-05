@@ -76,14 +76,14 @@ def remove_missing_parent_markers(loc_file):
     loc_file.update_lines(lines)
 
 
-def remove_bad_call_rate(loc_file):
+def remove_bad_call_rate(loc_file, missing):
     """
         Identify and remove sites with a low call rate
     """
 
     logging.info("Remove sites that have a bad call rate")
     lines = []
-    call_rate_thresh = 0.80
+    call_rate_thresh = missing 
     for i, line in enumerate(loc_file.lines):
         split_line = line.split("\t")
         id = split_line[0]
@@ -98,7 +98,7 @@ from scipy.stats import chisquare
 import math
 import numpy as np
 
-def check_mendel(genotypes , id):
+def check_mendel(genotypes):
    
     groups = {}
     total_gt = 0
@@ -152,31 +152,31 @@ def check_mendel(genotypes , id):
         return float("nan")
 
     #print id, p_value , groups, observed, expected 
-    if p_value <= 1:
-        keys = groups.keys()
-        oe = observed - expected
-        if len(keys) == 3:
-            print oe[1]
-        elif len(keys) == 2:
-            print oe[0]
-            try:
-                idx =keys.index("lm")
-            except:
-                pass
-            try:
-                idx =keys.index("np")
-            except:
-                pass
-            try: 
-                idx = keys.index("hk")
-                print oe[idx]
-            except:
-                pass
+    #if p_value <= 1:
+    #    keys = groups.keys()
+    #    oe = observed - expected
+    #    if len(keys) == 3:
+    #        print oe[1]
+    #    elif len(keys) == 2:
+    #        print oe[0]
+    #        try:
+    #            idx =keys.index("lm")
+    #        except:
+    #            pass
+    #        try:
+    #            idx =keys.index("np")
+    #        except:
+    #            pass
+    #        try: 
+    #            idx = keys.index("hk")
+    #            print oe[idx]
+    #        except:
+    #            pass
 
                 
     return(p_value)
 
-def check_impossible_genotypes(loc_file):
+def check_impossible_genotypes(loc_file,f2_pvalue, backcross_pvalue):
 
     logging.info("Look for impossible genotypes")
     lines = []
@@ -186,18 +186,16 @@ def check_impossible_genotypes(loc_file):
         genotypes = split_line[2:]
         id = split_line[0]
         if p_genotype == "<nnxnp>":
-            if not any("nn" == s or "np" == s or "--" == s for s in genotypes):
-                print genotypes
-            p_value= check_mendel(genotypes, id)
+            p_value= check_mendel(genotypes) 
+            if p_value > backcross_pvalue:
+                lines.append(line)
         elif p_genotype == "<lmxll>":
-            if not any("lm" == s or "ll" == s or "--" == s in s for s in genotypes):
-                print "WTF"
-            p_value=  check_mendel(genotypes,id )
-            if p_value > 0.0001:
+            p_value=  check_mendel(genotypes)
+            if p_value > backcross_pvalue:
                 lines.append(line)
         else:
-            p_value = check_mendel(genotypes, id)
-            if p_value > 0.001:
+            p_value = check_mendel(genotypes)
+            if p_value > f2_pvalue: 
                 lines.append(line)
     loc_file.update_lines(lines)
 
@@ -221,13 +219,19 @@ def main():
     """
     parser = argparse.ArgumentParser(description="Loc_file_filter")
     parser.add_argument("loc_file", help="Loc file to format")
+    parser.add_argument("-m", "--missing", dest="missing", help="Maximum proportion of missing data allowed (default = 0.5)", default=0.5)
+    parser.add_argument("-b", "--backcross-pvalue", dest="backcross_pvalue",
+                        help="Segregant Chi-square P-value filter for maternally and paternally"
+                        "informative back crosses: 1:1 expected ratio (default = 0.0001)", default=0.0001)
+    parser.add_argument("-f", "--f2-pvalue", dest="f2_pvalue", help="Segregant Chi-square P-value"
+                        "filter for`f2 crosses: 1:2:1 expected ratio (default = 0.001)")
     logging.info("Started LOC filter for linkage map creation")
     args = parser.parse_args()
     loc_file = args.loc_file
     loc_file = LocFile(loc_file)
     remove_missing_parent_markers(loc_file)
-    remove_bad_call_rate(loc_file)
-    check_impossible_genotypes(loc_file)
+    remove_bad_call_rate(loc_file, args.missing)
+    check_impossible_genotypes(loc_file, args.f2_pvalue,args.backcross_pvalue)
     output_loc_map_loc_files(loc_file)
 if __name__ == "__main__":
     main()
