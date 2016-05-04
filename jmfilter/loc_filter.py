@@ -71,9 +71,9 @@ def remove_missing_parent_markers(loc_file):
         if any(p_genotype in s for s in __VALID__):
             lines.append(line) 
             total += 1
-        elif "SNP" not in id: 
-            lines.append(line)
-            total += 1
+        #elif "SNP" not in id: 
+        #    lines.append(line)
+        #    total += 1
     loc_file.update_lines(lines)
 
 
