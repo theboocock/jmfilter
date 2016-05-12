@@ -1,0 +1,9 @@
+setup.py
+jmfilter/__init__.py
+jmfilter/loc_filter.py
+jmfilter.egg-info/PKG-INFO
+jmfilter.egg-info/SOURCES.txt
+jmfilter.egg-info/dependency_links.txt
+jmfilter.egg-info/entry_points.txt
+jmfilter.egg-info/not-zip-safe
+jmfilter.egg-info/top_level.txt
