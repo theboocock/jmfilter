@@ -128,7 +128,6 @@ def check_mendel(genotypes):
             groups['hh'] = 0
             pass
 
-
     if len(groups.keys()) == 3:
         expected = np.array([0.25,0.5,0.25]) * total_gt
         observed = np.array([0,0,0])
@@ -147,7 +146,7 @@ def check_mendel(genotypes):
             observed[i] = partial_chi 
             i += 1
     else:
-        return 0.5
+        return sys.float_info.min 
     p_value = chisquare(observed, expected)[1]
     if len(groups.keys()) == 0:
         return float("nan")
