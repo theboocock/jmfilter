@@ -3,3 +3,5 @@ jmfilter/output_loc.loc
 build/*
 dist/*
 jmfilter/*
+test/405x345_out
+test/test
